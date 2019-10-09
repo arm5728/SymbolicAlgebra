@@ -1,8 +1,6 @@
 ; FUNCTIONS AND CREDIT TO DR. GORDON NOVAK
 ; cs378.clj                Gordon S. Novak Jr.       29 Jan 19
 
-; (load-file "/u/novak/cs378/cs378.clj")
-;                    tst.xyz.core
 (ns user
   (:use clojure.test )
   (:require [clojure.string :as str] ))
