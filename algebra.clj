@@ -195,3 +195,88 @@
 		)
 	)
 )
+;Get operator precedence
+(defn getPrecedence [operator]
+	(if (or (= operator '+)(= operator '-))
+		5
+		(if (or (= operator '/)(= operator '*)(= operator 'exp)(= operator 'sqrt)(= operator 'expt))
+			6
+			(if (= operator '=)
+				1		
+			)
+		)
+	)
+)
+
+;Transform clojure code to java code
+(defn tojavab [tree precedence]
+	(if (cons? tree)
+		(if (= 2 (length tree))
+			(cond
+				(= (op tree) '-)
+					(str 
+						"("   (op tree) 
+						(tojavab (lhs tree)(getPrecedence (op tree))) ")"
+					)
+				(= (op tree) 'sqrt)
+					(str 
+						"Math.sqrt(" 
+						(tojavab (lhs tree)(getPrecedence (op tree))) ")"
+					)
+				(= (op tree) 'exp)
+					(str 
+						"Math.pow(" 
+						(tojavab (lhs tree)(getPrecedence (op tree))) ", 2)"
+					)				
+			)
+			(if-not (= (op tree) 'expt)
+				(if (> precedence (getPrecedence (op tree)))
+					(str 
+						"(" (tojavab (lhs tree)(getPrecedence (op tree))) 
+						" " (op tree) " " 
+						(tojavab (rhs tree)(getPrecedence (op tree))) ")" 
+					)	
+					(str 
+						(tojavab (lhs tree)(getPrecedence (op tree))) 
+						" " (op tree) " " 
+						(tojavab (rhs tree)(getPrecedence (op tree)))
+					)	
+				)
+				(str 
+					"Math.pow(" (tojavab (lhs tree)(getPrecedence (op tree))) 
+					", "
+					(tojavab (rhs tree)(getPrecedence (op tree))) ")" 
+				)
+			)
+		)
+		tree		
+	)
+)
+
+;To java wrapper
+(defn tojava [tree]
+	(str "double " (tojavab tree 0) ";" )
+)
+
+;Get java header
+(defn arglist [inputs]
+	(if (cons? inputs)
+		(str "double " (first inputs) (if (> (length inputs)  1) ", " ")") (arglist (rest inputs)))
+		nil
+	)	
+)
+
+;Print java methods
+(defn solvecode [funName equations inputs var]
+	(doseq [item 
+		(concat 
+			(list (str "public static double " funName "(" (arglist inputs) " {"))
+			(let [filteredEquations (reverse (filtercode (solveqnsc '() equations inputs var) (list var)))]
+				(map tojava filteredEquations)
+			)
+			(list (str "return " var ";"))
+			(list (str "}"))
+		)] 
+		(println item)
+	)
+)
